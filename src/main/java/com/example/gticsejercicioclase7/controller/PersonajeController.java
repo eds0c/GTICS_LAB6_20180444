@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -28,8 +30,14 @@ public class PersonajeController {
 
 
     @GetMapping(value = {"/personaje/list","","/","/personaje"})
-    public String principal(Model model){
-        model.addAttribute("listaPersonajes", charactersRepository.findAll());
+    public String principal(Model model,@RequestParam(name="palabra",required = false) String palabra){
+        List<Characters> listaPersonajes = new ArrayList<>();
+        if(palabra==null){
+            listaPersonajes=charactersRepository.findAll();
+        }else{
+            listaPersonajes=charactersRepository.findByNameIgnoreCaseContaining(palabra);
+        }
+        model.addAttribute("listaPersonajes",listaPersonajes);
         return "personajes/list";
     }
 
@@ -87,6 +95,12 @@ public class PersonajeController {
             charactersRepository.deleteById(id);
         }
         return "redirect:/personaje/list";
+    }
+
+    @PostMapping(value = "/personaje/buscar")
+    public String buscarPersonaje(@RequestParam("palabra") String palabra,Model model){
+
+        return "redirect:/personaje/list?palabra="+palabra;
     }
 
 }

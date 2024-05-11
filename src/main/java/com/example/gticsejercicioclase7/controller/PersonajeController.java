@@ -27,7 +27,7 @@ public class PersonajeController {
     UsersRepository usersRepository;
 
 
-    @GetMapping(value = {"/personaje/list"})
+    @GetMapping(value = {"/personaje/list","","/","/personaje"})
     public String principal(Model model){
         model.addAttribute("listaPersonajes", charactersRepository.findAll());
         return "personajes/list";

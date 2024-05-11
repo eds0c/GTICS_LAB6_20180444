@@ -23,7 +23,6 @@ import javax.sql.DataSource;
 @Configuration
 public class WebSecurityConfig {
 
-
     final DataSource dataSource;
     final UsersRepository usersRepository;
     public WebSecurityConfig(DataSource dataSource, UsersRepository usersRepository) {
@@ -39,8 +38,8 @@ public class WebSecurityConfig {
     @Bean
     public UserDetailsManager users(DataSource dataSource){
         JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
-        String sql1 = "SELECT email, password FROM users WHERE email = ?";
-        String sql2 = "SELECT u.email, r.name FROM users u "
+        String sql1 = "SELECT email,password,status FROM users WHERE email = ?";
+        String sql2 = "SELECT u.email,r.name FROM users u "
                 + "INNER JOIN roles r ON (u.idrol = r.id) "
                 + "WHERE u.email = ?";
 
@@ -74,6 +73,8 @@ public class WebSecurityConfig {
                 formLogin
                         .loginPage("/openLoginWindow")
                         .loginProcessingUrl("/submitLoginForm")
+
+
                         .successHandler((request, response, authentication) -> {
 
                             DefaultSavedRequest defaultSavedRequest =
@@ -91,6 +92,7 @@ public class WebSecurityConfig {
                                 String rol = "";
                                 for (GrantedAuthority role : authentication.getAuthorities()) {
                                     rol = role.getAuthority();
+                                    System.out.println(rol);
                                     break;
                                 }
 
@@ -104,15 +106,22 @@ public class WebSecurityConfig {
 
 
         http.authorizeHttpRequests(authz -> authz
-                                .requestMatchers("/personaje/list").hasAnyRole("USER", "EDITOR", "ADMIN")
-                                .requestMatchers("/personaje/new").hasAnyRole("EDITOR", "ADMIN")
-                                .requestMatchers("/personaje/edit").hasAnyRole("EDITOR", "ADMIN")
-                                .requestMatchers("/personaje/delete").hasAnyRole("ADMIN")
-                                .anyRequest().permitAll());
-                //.httpBasic(Customizer.withDefaults())
-                //.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .requestMatchers("/personaje/list").hasAnyRole("USER", "EDITOR", "ADMIN")
+                .requestMatchers("/personaje/new").hasAnyRole("EDITOR", "ADMIN")
+                .requestMatchers("/personaje/edit").hasAnyRole("EDITOR", "ADMIN")
+                .requestMatchers("/personaje/delete").hasAnyRole("ADMIN")
+                .anyRequest().permitAll());
+        //.httpBasic(Customizer.withDefaults())
+        //.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        http.logout(authz -> authz
+                .logoutSuccessUrl("/logout")
+                .deleteCookies("JSESSIONID")
+                .invalidateHttpSession(true));
+
 
         return http.build();
     }
+
 
 }

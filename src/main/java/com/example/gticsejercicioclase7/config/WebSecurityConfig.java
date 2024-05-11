@@ -17,6 +17,7 @@ import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.sql.DataSource;
 
@@ -49,30 +50,13 @@ public class WebSecurityConfig {
     }
 
 
-
-    /*
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-
-        http.formLogin()
-           .loginPage("/loginForm")
-           .loginProcessingUrl("/processLogin");
-
-        http.authorizeHttpRequests()
-           .requestMatchers("/employee", "/employee/**").hasAnyAuthority("admin", "logistica")
-           .requestMatchers("/shipper", "/shipper/**").hasAuthority("admin")
-           .anyRequest().permitAll();
-
-        return http.build();
-    }*/
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.formLogin(formLogin ->
-                formLogin
-                        .loginPage("/openLoginWindow")
-                        .loginProcessingUrl("/submitLoginForm")
+         http.formLogin(formLogin ->
+             formLogin
+                     .loginPage("/openLoginWindow")
+                     .loginProcessingUrl("/submitLoginForm")
 
 
                         .successHandler((request, response, authentication) -> {
@@ -86,42 +70,38 @@ public class WebSecurityConfig {
 
                             //si vengo por url -> defaultSR existe
                             if (defaultSavedRequest != null) {
+
                                 String targetURl = defaultSavedRequest.getRequestURL();
+
                                 new DefaultRedirectStrategy().sendRedirect(request, response, targetURl);
+
                             } else { //estoy viniendo del botón de login
                                 String rol = "";
                                 for (GrantedAuthority role : authentication.getAuthorities()) {
                                     rol = role.getAuthority();
-                                    System.out.println(rol);
                                     break;
                                 }
 
-                                if (rol.equals("admin")) {
-                                    response.sendRedirect("/shipper");
-                                } else {
-                                    response.sendRedirect("/employee");
-                                }
+                                response.sendRedirect("/personaje/list");
+
                             }
                         }));
 
 
-        http.authorizeHttpRequests(authz -> authz
-                .requestMatchers("/personaje/list").hasAnyRole("USER", "EDITOR", "ADMIN")
-                .requestMatchers("/personaje/new").hasAnyRole("EDITOR", "ADMIN")
-                .requestMatchers("/personaje/edit").hasAnyRole("EDITOR", "ADMIN")
-                .requestMatchers("/personaje/delete").hasAnyRole("ADMIN")
-                .anyRequest().permitAll());
-        //.httpBasic(Customizer.withDefaults())
-        //.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.logout(authz -> authz
-                .logoutSuccessUrl("/logout")
-                .deleteCookies("JSESSIONID")
-                .invalidateHttpSession(true));
+        http.authorizeHttpRequests((authorize) -> authorize
+               .requestMatchers("/personaje/list").hasAnyAuthority("EDITOR", "ADMIN","USER")
+                .requestMatchers("/personaje/new").hasAnyAuthority("EDITOR", "ADMIN")
+                .requestMatchers("/personaje/edit").hasAnyAuthority("EDITOR", "ADMIN")
+                .requestMatchers("/personaje/delete").hasAnyAuthority("ADMIN")
+                .anyRequest().permitAll()
+                )
+        ;
 
 
         return http.build();
     }
+
+
 
 
 }

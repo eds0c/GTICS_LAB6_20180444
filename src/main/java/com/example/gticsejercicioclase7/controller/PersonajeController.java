@@ -29,7 +29,7 @@ public class PersonajeController {
     UsersRepository usersRepository;
 
 
-    @GetMapping(value = {"/personaje/list","","/","/personaje"})
+    @GetMapping(value = {"/personaje/list"})
     public String principal(Model model,@RequestParam(name="palabra",required = false) String palabra){
         List<Characters> listaPersonajes = new ArrayList<>();
         if(palabra==null){
